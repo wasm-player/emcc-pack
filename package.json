@@ -1,0 +1,21 @@
+{
+  "name": "emcc-pack",
+  "version": "1.0.0",
+  "description": "build and pack emscripten to es6 module",
+  "main": "index.js",
+  "author": "qianlong.zhou@gmail.com",
+  "license": "MIT",
+  "bin": {
+    "emcc-pack": "bin/emcc-pack.js"
+  },
+  "files": [
+    "bin/",
+    "packer/"
+  ],
+  "dependencies": {
+    "chalk": "^4.1.1",
+    "clear": "^0.1.0",
+    "figlet": "^1.5.0",
+    "minimist": "^1.2.5"
+  }
+}
