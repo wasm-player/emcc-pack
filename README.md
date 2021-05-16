@@ -7,6 +7,6 @@
   <sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
 </div>
 
-### 🐑 Use `yarn emcc-pack -- --exports=[<func_name>] [-I<include_dir>] <files> ` 
+### 🐑 Use `yarn emcc-pack --exports=[<func_name>] [-I<include_dir>] <files> ` 
 
 

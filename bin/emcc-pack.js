@@ -45,6 +45,9 @@ try {
     }
     // 设置包含目录选项
     if (ARGS.I) {
+		if (typeof(ARGS.I) === 'string') {
+			ARGS.I = [ARGS.I];
+		}
         ARGS.I.forEach(v => {
             args.push('-I ' + v);
         });
