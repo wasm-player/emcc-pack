@@ -88,15 +88,18 @@ function load() {
         mod.instance = wasmInterface({
             instantiateWasm(info, receiveInstance) {
                 import('./${name}').then((loader) => {
-                    WebAssembly.instantiate(loader.getData(), info).then(receiveInstance, function (reason) {
+                    WebAssembly.instantiate(loader.getData(), info).then(function(wasm) {
+						receiveInstance(wasm.instance, wasm.module);
+					}, function (reason) {
                         console.err('failed to prepare wasm');
                         reject(reason);
                         throw reason;
                     });
                 });
+				return {};
             },
             onRuntimeInitialized() {
-                resove(mod.instance);
+                resolve(mod.instance);
             }
         });
     });
@@ -110,7 +113,7 @@ export default {
 function genIndexD() {
     return `
 export default class Module {
-    public async load(): any;
+    public static async load(): any;
 }
 `;
 }
