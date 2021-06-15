@@ -13,7 +13,8 @@ const PACKER_DIR = path.join(path.dirname(path.dirname(fs.realpathSync(__filenam
 const ARGS = minimist(process.argv.slice(2));
 const EMCC_CMD = ['emcc', '-Os', '-s ALLOW_MEMORY_GROWTH=1', '-s MALLOC=emmalloc', 
                   '-s EXPORT_ES6=1', '-s USE_ES6_IMPORT_META=0', '-s STRICT=1', 
-                  '-s ENVIRONMENT="web"', '-s MODULARIZE=1'];
+                  '-s ENVIRONMENT="web"', '-s MODULARIZE=1', '-s ALLOW_TABLE_GROWTH',
+                  '-s EXTRA_EXPORTED_RUNTIME_METHODS="[\'addFunction\',\'removeFunction\']"'];
 const PROJECT_DIR = process.cwd();
 const PKG_DIR = path.join(PROJECT_DIR, 'pkg');
 
