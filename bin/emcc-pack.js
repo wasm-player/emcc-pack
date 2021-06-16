@@ -65,7 +65,8 @@ console.log(chalk.green('emcc build done'));
 // 将_api.wasm打包到rust wasm中
 console.log(chalk.gray('wasm packing...'));
 const package = require(path.join(PROJECT_DIR, 'package.json'));
-process.env['DATA_PATH'] = path.join(PKG_DIR, '_api.wasm');
+process.env['WASM_PATH'] = path.join(PKG_DIR, '_api.wasm');
+process.env['JS_PATH'] = path.join(PKG_DIR, '_api.js');
 childProcess.execSync(`wasm-pack build --release --out-dir ${PKG_DIR} --out-name ${package.name} ${PACKER_DIR}`);
 console.log(chalk.green('wasm pack done'));
 
@@ -89,7 +90,7 @@ function load() {
         mod.instance = wasmInterface({
             instantiateWasm(info, receiveInstance) {
                 import('./${name}').then((loader) => {
-                    WebAssembly.instantiate(loader.getData(), info).then(function(wasm) {
+                    WebAssembly.instantiate(loader.getWasmData(), info).then(function(wasm) {
 						receiveInstance(wasm.instance, wasm.module);
 					}, function (reason) {
                         console.err('failed to prepare wasm');
@@ -105,8 +106,24 @@ function load() {
         });
     });
 }
+function getWasmData() {
+    return new Promise((resolve, reject) => {
+        import('./${name}').then((loader) => {
+            resolve(loader.getWasmData());
+        }).catch(err => reject(err));
+    });
+}
+function getJsData() {
+    return new Promise((resolve, reject) => {
+        import('./${name}').then((loader) => {
+            resolve(loader.getJsData());
+        }).catch(err => reject(err));
+    });
+}
 export default {
-    load
+    load,
+    getWasmData,
+    getJsData
 };
 `;
 }
@@ -115,6 +132,8 @@ function genIndexD() {
     return `
 export default class Module {
     public static async load(): any;
+    public static async getWasmData(): any;
+    public static async getJsData(): any;
 }
 `;
 }
