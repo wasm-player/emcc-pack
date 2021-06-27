@@ -44,6 +44,10 @@ try {
         console.log(chalk.red('reuqire --exports argument'));
         return -1;
     }
+	if (ARGS.simd) {
+        console.log(chalk.green('---- simd128 enabled'));
+		args.push('-msimd128');
+	}
     // 设置包含目录选项
     if (ARGS.I) {
 		if (typeof(ARGS.I) === 'string') {
@@ -65,7 +69,8 @@ console.log(chalk.green('emcc build done'));
 // 将_api.wasm打包到rust wasm中
 console.log(chalk.gray('wasm packing...'));
 const package = require(path.join(PROJECT_DIR, 'package.json'));
-process.env['WASM_PATH'] = path.join(PKG_DIR, '_api.wasm');
+fs.renameSync(path.join(PKG_DIR, '_api.wasm'), path.join(PKG_DIR, '_api.wasm.dat'));
+process.env['WASM_PATH'] = path.join(PKG_DIR, '_api.wasm.dat');
 process.env['JS_PATH'] = path.join(PKG_DIR, '_api.js');
 childProcess.execSync(`wasm-pack build --release --out-dir ${PKG_DIR} --out-name ${package.name} ${PACKER_DIR}`);
 console.log(chalk.green('wasm pack done'));
@@ -78,6 +83,7 @@ fs.writeFileSync(path.join(PKG_DIR, 'index.js'), genIndexJs(package.name));
 fs.writeFileSync(path.join(PKG_DIR, 'index.d.ts'), genIndexD());
 // 创建package.json
 fs.writeFileSync(path.join(PKG_DIR, 'package.json'), genPackageJson(package.name, package.version));
+fs.unlinkSync(path.join(PKG_DIR, '_api.wasm.dat'));
 
 console.log(chalk.green('build and pack success to pkg dir, enjoy!!'));
 
