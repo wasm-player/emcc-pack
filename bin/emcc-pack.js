@@ -69,20 +69,24 @@ console.log(chalk.green('emcc build done'));
 // 将_api.wasm打包到rust wasm中
 console.log(chalk.gray('wasm packing...'));
 const package = require(path.join(PROJECT_DIR, 'package.json'));
+let wasmName = ARGS.wasmname;
+if (!wasmName) {
+    wasmName = package.name;
+}
 fs.renameSync(path.join(PKG_DIR, '_api.wasm'), path.join(PKG_DIR, '_api.wasm.dat'));
 process.env['WASM_PATH'] = path.join(PKG_DIR, '_api.wasm.dat');
 process.env['JS_PATH'] = path.join(PKG_DIR, '_api.js');
-childProcess.execSync(`wasm-pack build --release --out-dir ${PKG_DIR} --out-name ${package.name} ${PACKER_DIR}`);
+childProcess.execSync(`wasm-pack build --release --out-dir ${PKG_DIR} --out-name ${wasmName} ${PACKER_DIR}`);
 console.log(chalk.green('wasm pack done'));
 
 // 重新配置文件
 console.log(chalk.gray('final packing...'));
 fs.unlinkSync(path.join(PKG_DIR, 'package.json'));
 // 创建文件入口文件
-fs.writeFileSync(path.join(PKG_DIR, 'index.js'), genIndexJs(package.name));
+fs.writeFileSync(path.join(PKG_DIR, 'index.js'), genIndexJs(wasmName));
 fs.writeFileSync(path.join(PKG_DIR, 'index.d.ts'), genIndexD());
 // 创建package.json
-fs.writeFileSync(path.join(PKG_DIR, 'package.json'), genPackageJson(package.name, package.version));
+fs.writeFileSync(path.join(PKG_DIR, 'package.json'), genPackageJson(wasmName, package.version));
 fs.unlinkSync(path.join(PKG_DIR, '_api.wasm.dat'));
 
 console.log(chalk.green('build and pack success to pkg dir, enjoy!!'));
