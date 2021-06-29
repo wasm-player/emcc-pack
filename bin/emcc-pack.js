@@ -141,9 +141,9 @@ export default {
 function genIndexD() {
     return `
 export default class Module {
-    public static async load(): any;
-    public static async getWasmData(): any;
-    public static async getJsData(): any;
+    public static load(): Promise<any>;
+    public static getWasmData(): Promise<any>;
+    public static getJsData(): Promise<any>;
 }
 `;
 }
