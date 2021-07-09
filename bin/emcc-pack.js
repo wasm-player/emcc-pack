@@ -47,6 +47,7 @@ try {
 	if (ARGS.simd) {
         console.log(chalk.green('---- simd128 enabled'));
 		args.push('-msimd128');
+        args.push('-msse');
 	}
     // 设置包含目录选项
     if (ARGS.I) {
