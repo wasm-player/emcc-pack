@@ -77,7 +77,7 @@ if (!wasmName) {
 fs.renameSync(path.join(PKG_DIR, '_api.wasm'), path.join(PKG_DIR, '_api.wasm.dat'));
 process.env['WASM_PATH'] = path.join(PKG_DIR, '_api.wasm.dat');
 process.env['JS_PATH'] = path.join(PKG_DIR, '_api.js');
-childProcess.execSync(`wasm-pack build --release --out-dir ${PKG_DIR} --out-name ${wasmName} ${PACKER_DIR}`);
+childProcess.execSync(`wasm-pack build --target=web --release --out-dir ${PKG_DIR} --out-name ${wasmName} ${PACKER_DIR}`);
 console.log(chalk.green('wasm pack done'));
 
 // 重新配置文件
@@ -89,19 +89,42 @@ fs.writeFileSync(path.join(PKG_DIR, 'index.d.ts'), genIndexD());
 // 创建package.json
 fs.writeFileSync(path.join(PKG_DIR, 'package.json'), genPackageJson(wasmName, package.version));
 fs.unlinkSync(path.join(PKG_DIR, '_api.wasm.dat'));
+fs.unlinkSync(path.join(PKG_DIR, `${wasmName}_bg.wasm.d.ts`));
+fs.renameSync(path.join(PKG_DIR, `${wasmName}_bg.wasm`), path.join(PKG_DIR, `${wasmName}_bg.png`));
+// 替换JS内容（解决webpack打包报错问题）
+const jsFilePath = path.join(PKG_DIR, `${wasmName}.js`);
+const js = fs.readFileSync(jsFilePath);
+fs.writeFileSync(jsFilePath, js.toString('utf-8').replace('import.meta.url', '""'));
 
 console.log(chalk.green('build and pack success to pkg dir, enjoy!!'));
 
 function genIndexJs(name) {
     return `
 import wasmInterface from './_api';
+import url from './${name}_bg.png';
+import init, {getWasmData as getWasm,getJsData as getJs} from './${name}';
+let inited = false;
+function getData(fn) {
+    return new Promise((resolve, reject) => {
+        if (!inited) {
+            fetch(url).then((res) => {
+                init(res.arrayBuffer()).then(() => {
+                    inited = true;
+                    resolve(fn());
+                }).catch(reject);
+            }).catch(reject);
+        } else {
+            resolve(fn());
+        }
+    });
+}
 function load() {
     return new Promise((resolve, reject) => {
         const mod = {instance: undefined};
         mod.instance = wasmInterface({
             instantiateWasm(info, receiveInstance) {
-                import('./${name}').then((loader) => {
-                    WebAssembly.instantiate(loader.getWasmData(), info).then(function(wasm) {
+                getData(getWasm).then((data) => {
+                    WebAssembly.instantiate(data, info).then(function(wasm) {
 						receiveInstance(wasm.instance, wasm.module);
 					}, function (reason) {
                         console.err('failed to prepare wasm');
@@ -119,15 +142,15 @@ function load() {
 }
 function getWasmData() {
     return new Promise((resolve, reject) => {
-        import('./${name}').then((loader) => {
-            resolve(loader.getWasmData());
+        getData(getWasm).then((data) => {
+            resolve(data);
         }).catch(err => reject(err));
     });
 }
 function getJsData() {
     return new Promise((resolve, reject) => {
-        import('./${name}').then((loader) => {
-            resolve(loader.getJsData());
+        getData(getJs).then((data) => {
+            resolve(data);
         }).catch(err => reject(err));
     });
 }
@@ -160,8 +183,7 @@ function genPackageJson(name, version) {
     "files": [
         "index.js",
         "_api.js",
-        "${name}_bg.js",
-        "${name}_bg.wasm",
+        "${name}_bg.png",
         "${name}.js",
         "${name}.d.ts"
     ],
