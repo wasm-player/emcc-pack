@@ -49,6 +49,10 @@ try {
 		args.push('-msimd128');
         args.push('-msse');
 	}
+    if (ARGS.thread) {
+        console.log(chalk.green('---- thread enabled'));
+        args.push('-s USE_PTHREADS=1')
+    }
     // 设置包含目录选项
     if (ARGS.I) {
 		if (typeof(ARGS.I) === 'string') {

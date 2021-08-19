@@ -14,6 +14,7 @@
  - `wasmname` target package name, eg. `--wasmname=new_name`
  - `simd` build with simd support, eg. `--simd`
  - `I` include directory, eg. `-I../include -I./3rdparty`
+ - `thread` enable pthread to build, eg. `--thread`
     
 #### full example
 
